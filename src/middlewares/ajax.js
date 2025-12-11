@@ -6,8 +6,7 @@ import { FETCH_PROFILE, UPDATE_PROFILE } from '../actions/profile';
 import { CONTACT_US } from '../actions/contact';
 
 const api = axios.create({
-  baseURL: 'http://ec2-34-224-30-121.compute-1.amazonaws.com/api/v1',
-  // baseURL: 'http://localhost:8000/api/v1',
+  baseURL: process.env.API_BASE_URL,
 });
 
 const connectedToken = localStorage.getItem('token');
@@ -24,8 +23,8 @@ const ajax = (store) => (next) => (action) => {
         // success
         store.dispatch({
           type: 'SAVE_RESULT_DATA',
-          spotsResultList: res.data[0],
-          eventsResultList: res.data[1],
+          spotsResultList: res.data.spots || [],
+          eventsResultList: res.data.events || [],
         });
       })
       .catch((err) => {
@@ -39,25 +38,36 @@ const ajax = (store) => (next) => (action) => {
         // success
         store.dispatch({
           type: 'SAVE_HOME_LASTS',
-          lastsEvents: res.data[1],
-          bestsSpots: res.data[2],
-          lastsSpots: res.data[0],
+          lastsEvents: res.data.lastEvents || [],
+          bestsSpots: res.data.topSpots || [],
+          lastsSpots: res.data.lastSpots || [],
         });
       })
       .catch((err) => {
         // error
         console.log(err);
+        store.dispatch({
+          type: 'SAVE_HOME_LASTS',
+          lastsEvents: [],
+          bestsSpots: [],
+          lastsSpots: [],
+        });
       });
   }
   if (action.type === FETCH_SPOTS_LIST) {
     api.get('/spots/')
       .then((res) => {
         // success
+        const spotsList = res.data || [];
+        // Extract unique categories and departments from spots
+        const categories = [...new Set(spotsList.flatMap(spot => spot.categories || []))];
+        const departments = [...new Set(spotsList.map(spot => spot.departement).filter(Boolean))];
+
         store.dispatch({
           type: 'SAVE_SPOTS_LIST',
-          spotsList: res.data[0],
-          spotsCate: res.data[1],
-          spotsDepar: res.data[2],
+          spotsList: spotsList,
+          spotsCate: categories,
+          spotsDepar: departments,
         });
         // console.log(res.data);
       })
@@ -74,9 +84,9 @@ const ajax = (store) => (next) => (action) => {
       description: state.spots.newDescription,
       address: state.spots.newAddress,
       city: state.spots.newCity,
-      type_spot: state.spots.newTypeSpot,
-      categories: [state.spots.newCategory],
-      departement: state.spots.newDepartement,
+      typeSpot: state.spots.newTypeSpot,
+      categoryIds: [state.spots.newCategory],
+      departementId: state.spots.newDepartement,
       latitude: state.spots.newLatitude,
       longitude: state.spots.newLongitude,
     })
@@ -109,27 +119,25 @@ const ajax = (store) => (next) => (action) => {
   if (action.type === 'LOGIN') {
     const state = store.getState();
     api.post('/login_check', {
-      username: state.user.email,
+      email: state.user.email,
       password: state.user.password,
-      // username: 'laurent@oclock.io',
-      // password: 'demotest',
     })
       .then((res) => {
         // success
-        api.defaults.headers.common.Authorization = `bearer ${res.data.token}`;
+        api.defaults.headers.common.Authorization = `bearer ${res.data.access_token}`;
         // on va chercher les données de l'utilisateur connecté
         store.dispatch({
           type: 'SAVE_USER',
-          pseudo: res.data.data.user_pseudo,
-          userId: res.data.data.user_id,
-          token: res.data.token,
+          pseudo: res.data.user.pseudo,
+          userId: res.data.user.id,
+          token: res.data.access_token,
         });
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('pseudo', res.data.data.user_pseudo);
-        localStorage.setItem('userid', res.data.data.user_id);
+        localStorage.setItem('token', res.data.access_token);
+        localStorage.setItem('pseudo', res.data.user.pseudo);
+        localStorage.setItem('userid', res.data.user.id);
         localStorage.setItem('isConnectedSuccess', 'true');
         window.location.href = '/';
-        // console.log(res.data.data);
+        // console.log(res.data);
       })
       .catch(() => {
         // error
@@ -142,11 +150,16 @@ const ajax = (store) => (next) => (action) => {
     api.get('/events/')
       .then((res) => {
         // success
+        const eventsList = res.data || [];
+        // Extract unique categories and departments from events
+        const categories = [...new Set(eventsList.flatMap(event => event.categories || []))];
+        const departments = [...new Set(eventsList.map(event => event.departement).filter(Boolean))];
+
         store.dispatch({
           type: 'SAVE_EVENTS_LIST',
-          eventsList: res.data[0],
-          eventsCate: res.data[1],
-          eventsDepar: res.data[2],
+          eventsList: eventsList,
+          eventsCate: categories,
+          eventsDepar: departments,
         });
         // console.log(res.data);
       })
@@ -161,18 +174,11 @@ const ajax = (store) => (next) => (action) => {
       title: state.events.newTitle,
       image: state.events.newImage,
       description: state.events.newDescription,
-      opening_hours: state.events.newOpeningHour,
-      closed_hours: state.events.newClosingHour,
-      type_event: state.events.newTypeEvent,
-      categories: [state.events.newCategory],
-      departement: state.events.newDepartement,
+      typeEvent: state.events.newTypeEvent,
+      categoryIds: [state.events.newCategory],
+      departementId: state.events.newDepartement,
       difficulty: state.events.newDifficulty,
-      link: state.events.newLink,
-      price: state.events.newPrice,
-      accessibility: state.events.newAccessibility,
-      date_event: state.events.newDateEvent,
-      latitude: state.events.newLatitude,
-      longitude: state.events.newLongitude,
+      dateEvent: state.events.newDateEvent,
     })
       .then((res) => {
         // success
@@ -197,7 +203,7 @@ const ajax = (store) => (next) => (action) => {
       presentation: state.user.newDescriptionRegister,
       city: state.user.newCityRegister,
       departement: state.user.newDepartementRegister,
-      categories: [state.user.newDisciRegister],
+      categoryIds: [state.user.newDisciRegister],
       equipement: state.user.newEquipementRegister,
     })
       .then((res) => {
