@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 // import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import MapZoomDrag from 'src/components/MapZoomDrag';
 
 import Field from '../../../Field';
@@ -33,6 +34,15 @@ const SpotForm = ({
 
   const handleSubmit = (evt) => {
     evt.preventDefault();
+
+    // Validate required fields
+    if (!title || title.trim() === '') {
+      toast.error('Le titre du spot est obligatoire', {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+      return;
+    }
+
     // dispatch({
     //   type: 'HOUR_CHANGE',
     //   newHour: openingHours.replace(':', 'h'),
@@ -66,6 +76,7 @@ const SpotForm = ({
           placeholder="Titre du spot"
           onChange={changeField}
           value={title}
+          required
         />
         <Field
           name="newImage"

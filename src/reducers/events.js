@@ -27,8 +27,16 @@ const reducer = (state = initialState, action = {}) => {
       return {
         ...state,
         eventsList: action.eventsList,
-        eventsCate: action.eventsCate,
-        eventsDepar: action.eventsDepar,
+      };
+    case 'SAVE_CATEGORIES_EVENTS':
+      return {
+        ...state,
+        eventsCate: action.categories,
+      };
+    case 'SAVE_DEPARTEMENTS_EVENTS':
+      return {
+        ...state,
+        eventsDepar: action.departements,
       };
     case 'SAVE_EVENT_ID':
       return {

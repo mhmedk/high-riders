@@ -33,6 +33,7 @@ const reducer = (state = initialState, action = {}) => {
         userId: action.userId,
         token: action.token,
         isConnected: true,
+        loading: false,
       };
     case 'HANDLE_TOAST':
       return {
@@ -48,6 +49,13 @@ const reducer = (state = initialState, action = {}) => {
         pseudo: '',
         userId: '',
         token: '',
+        loading: true,
+        profileData: {},
+      };
+    case 'FETCH_PROFILE_START':
+      return {
+        ...state,
+        loading: true,
       };
     case 'GET_PROFILE':
       return {
@@ -81,6 +89,11 @@ const reducer = (state = initialState, action = {}) => {
     case 'UPDATE':
       return {
         ...state,
+      };
+    case 'PROFILE_ERROR':
+      return {
+        ...state,
+        loading: false,
       };
     default:
       return state;

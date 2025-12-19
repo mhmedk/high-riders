@@ -14,6 +14,7 @@ const Field = ({
   min,
   max,
   step,
+  required,
 }) => {
   const handleChange = (evt) => {
     onChange(evt.target.value, name);
@@ -34,13 +35,14 @@ const Field = ({
         min={min}
         max={max}
         step={step}
+        required={required}
       />
 
       <label
         htmlFor={inputId}
         className="field-label"
       >
-        {placeholder}
+        {placeholder}{required && ' *'}
       </label>
     </div>
   );
@@ -58,6 +60,7 @@ Field.propTypes = {
   min: PropTypes.number,
   max: PropTypes.number,
   step: PropTypes.number,
+  required: PropTypes.bool,
 };
 
 Field.defaultProps = {
@@ -66,6 +69,7 @@ Field.defaultProps = {
   min: 0,
   max: 5,
   step: 1,
+  required: false,
 };
 
 // == Export

@@ -13,8 +13,14 @@ const Profil = () => {
 
   const dispatch = useDispatch();
   useEffect(() => {
-    dispatch(fetchProfile(id));
-  }, []);
+    console.log('Profile useEffect - userId:', id, 'loading:', loading);
+    if (id) {
+      console.log('Dispatching fetchProfile for userId:', id);
+      dispatch(fetchProfile(id));
+    }
+  }, [dispatch, id]);
+
+  console.log('Profile render - loading:', loading, 'profileData:', profileData);
 
   if (loading) {
     return <Loading />;

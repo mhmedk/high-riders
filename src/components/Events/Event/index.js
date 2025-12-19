@@ -76,7 +76,7 @@ const Event = () => {
 
   useEffect(() => {
     getEventId();
-  }, []);
+  }, [id]);
 
   return (
     <>
@@ -187,7 +187,7 @@ const Event = () => {
                 ? <Comments comments={commentsData} />
                 : <p>Pas encore de commentaires ...</p>}
             </div>
-            {eventId.author.id === Number(userId)
+            {eventId.author && eventId.author.id === Number(userId)
               ? (
                 <form className="event__delete" onSubmit={handleSubmitDeleteEvent}>
                   <button className="event__delete__button" type="submit">Supprimer l'event</button>
