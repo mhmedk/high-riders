@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FETCH_HOME_LASTS } from '../actions/home';
-import { FETCH_SPOTS_LIST, FETCH_SPOT_ID } from '../actions/spots';
+import { FETCH_SPOTS_LIST, FETCH_SPOT_ID, fetchSpotId } from '../actions/spots';
 import { FETCH_PROFILE, UPDATE_PROFILE } from '../actions/profile';
 import { CONTACT_US } from '../actions/contact';
 
@@ -383,38 +383,119 @@ const ajax = (store) => (next) => (action) => {
   }
   if (action.type === 'SEND_SPOT_COMMENT') {
     const state = store.getState();
+    const comment = state.spots.newComment;
+    const userId = state.user.userId;
+
+    if (!comment || comment.trim() === '') {
+      toast.error('Le commentaire ne peut pas être vide', {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+      return next(action);
+    }
+
+    if (!userId) {
+      toast.error('Vous devez être connecté pour commenter', {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+      return next(action);
+    }
+
     api.post(`/spots/${action.id}/comment`, {
-      content: state.spots.newComment,
-      label_type: '',
+      content: comment,
+      userId: Number(userId),
+      labelType: '',
     })
       .then((res) => {
         // success
         store.dispatch({
           type: 'SUCCESS_COMMENT_SPOT',
         });
+        toast.success('Commentaire ajouté', {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        // Refresh spot data to show new comment
+        store.dispatch(fetchSpotId(action.id));
         console.log(res);
       })
       .catch((err) => {
         // error
-        console.log(err);
+        console.error('Comment posting failed:', err);
+        if (err.response && err.response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userid');
+          localStorage.removeItem('pseudo');
+          store.dispatch({
+            type: 'LOGOUT',
+          });
+          toast.error('Session expirée, veuillez vous reconnecter', {
+            position: toast.POSITION.BOTTOM_LEFT,
+          });
+          window.location.href = '/connexion';
+        } else {
+          toast.error('Erreur lors de l\'ajout du commentaire', {
+            position: toast.POSITION.BOTTOM_LEFT,
+          });
+        }
       });
   }
   if (action.type === 'SEND_EVENT_COMMENT') {
     const state = store.getState();
+    const comment = state.events.newComment;
+    const userId = state.user.userId;
+
+    if (!comment || comment.trim() === '') {
+      toast.error('Le commentaire ne peut pas être vide', {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+      return next(action);
+    }
+
+    if (!userId) {
+      toast.error('Vous devez être connecté pour commenter', {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+      return next(action);
+    }
+
     api.post(`/events/${action.id}/comment`, {
-      content: state.events.newComment,
-      label_type: '',
+      content: comment,
+      userId: Number(userId),
+      labelType: '',
     })
       .then((res) => {
         // success
         store.dispatch({
           type: 'SUCCESS_COMMENT_EVENT',
         });
+        toast.success('Commentaire ajouté', {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        // Refresh event data to show new comment
+        store.dispatch({
+          type: 'FETCH_EVENT_ID',
+          id: action.id,
+        });
         console.log(res);
       })
       .catch((err) => {
         // error
-        console.log(err);
+        console.error('Comment posting failed:', err);
+        if (err.response && err.response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userid');
+          localStorage.removeItem('pseudo');
+          store.dispatch({
+            type: 'LOGOUT',
+          });
+          toast.error('Session expirée, veuillez vous reconnecter', {
+            position: toast.POSITION.BOTTOM_LEFT,
+          });
+          window.location.href = '/connexion';
+        } else {
+          toast.error('Erreur lors de l\'ajout du commentaire', {
+            position: toast.POSITION.BOTTOM_LEFT,
+          });
+        }
       });
   }
   if (action.type === 'SEND_EVENT_PARTICIPATION') {
