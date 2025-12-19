@@ -22,9 +22,17 @@ const reducer = (state = initialState, action = {}) => {
       return {
         ...state,
         spotsList: action.spotsList,
-        spotsCate: action.spotsCate,
-        spotsDeparts: action.spotsDepar,
         loading: false,
+      };
+    case 'SAVE_CATEGORIES':
+      return {
+        ...state,
+        spotsCate: action.categories,
+      };
+    case 'SAVE_DEPARTEMENTS':
+      return {
+        ...state,
+        spotsDeparts: action.departements,
       };
     case 'SAVE_SPOT_ID':
       return {

@@ -13,8 +13,14 @@ const Profil = () => {
 
   const dispatch = useDispatch();
   useEffect(() => {
-    dispatch(fetchProfile(id));
-  }, []);
+    console.log('Profile useEffect - userId:', id, 'loading:', loading);
+    if (id) {
+      console.log('Dispatching fetchProfile for userId:', id);
+      dispatch(fetchProfile(id));
+    }
+  }, [dispatch, id]);
+
+  console.log('Profile render - loading:', loading, 'profileData:', profileData);
 
   if (loading) {
     return <Loading />;
@@ -45,25 +51,25 @@ const Profil = () => {
         <span className="profil__tag-title">Equipement </span>
         <span className="profil__tag-data">{profileData.equipement}</span>
         <span className="profil__tag-title">Discipline </span>
-        <div className="profil__data__participations">{profileData.categories.map((elem) => <span key={elem.id} className="profil__tag-data">{elem.title}</span>)}</div>
+        <div className="profil__data__participations">{profileData.categories?.map((elem) => <span key={elem.id} className="profil__tag-data">{elem.title}</span>)}</div>
       </div>
       <div className="profil__data">
         <span className="profil__tag-title">Spots crées </span>
-        <div className="profil__data__participations">{profileData.spots.map((elem) => (
+        <div className="profil__data__participations">{profileData.spots?.map((elem) => (
           <Link className="profil__tag-data-link" key={elem.id} to={`/spots/${elem.id}`}>{elem.title}<AiOutlineLink className="profil__tag-data-link__icon" /></Link>
         ))}
         </div>
       </div>
       <div className="profil__data">
         <span className="profil__tag-title">Evènements crées </span>
-        <div className="profil__data__participations">{profileData.events.map((elem) => (
+        <div className="profil__data__participations">{profileData.events?.map((elem) => (
           <Link className="profil__tag-data-link" key={elem.id} to={`/evenements/${elem.id}`}>{elem.title}<AiOutlineLink className="profil__tag-data-link__icon" /></Link>
         ))}
         </div>
       </div>
       <div className="profil__data">
         <span className="profil__tag-title">Participations </span>
-        <div className="profil__data__participations">{profileData.participations.map((elem) => (
+        <div className="profil__data__participations">{profileData.participations?.map((elem) => (
           <Link className="profil__tag-data-link" key={elem.event.id} to={`/evenements/${elem.event.id}`}>{elem.event.title}<AiOutlineLink className="profil__tag-data-link__icon" /></Link>
         ))}
         </div>

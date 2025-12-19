@@ -63,7 +63,7 @@ const Spot = () => {
 
   useEffect(() => {
     getSpotId();
-  }, []);
+  }, [id]);
 
   const handleSubmit = (evt) => {
     evt.preventDefault();
@@ -190,7 +190,7 @@ const Spot = () => {
               ? <Comments comments={commentsData} />
               : <p>Pas encore de commentaires ...</p>}
           </form>
-          {spotId.author.id === Number(userId)
+          {spotId.author && spotId.author.id === Number(userId)
             ? (
               <form className="spot__delete" onSubmit={handleSubmitDeleteSpot}>
                 <button className="spot__delete__button" type="submit">Supprimer le spot</button>

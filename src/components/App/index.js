@@ -25,6 +25,7 @@ import SiteMap from '../SiteMap';
 import ErrorNotFound from '../ErrorNotFound';
 import Event from '../Events/Event';
 import AddEvent from '../Events/AddEvent';
+import ProtectedRoute from '../ProtectedRoute';
 
 // == Composant
 const App = () => {
@@ -32,18 +33,20 @@ const App = () => {
   const logged = useSelector((state) => state.user.logged);
 
   // Check for token and update application state if required
-  const token = localStorage.getItem('token');
-  const pseudo = localStorage.getItem('pseudo');
-  const userid = localStorage.getItem('userid');
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const pseudo = localStorage.getItem('pseudo');
+    const userid = localStorage.getItem('userid');
 
-  if (token) {
-    dispatch({
-      type: 'SAVE_USER',
-      pseudo: pseudo,
-      userId: userid,
-      token: token,
-    });
-  }
+    if (token && !logged) {
+      dispatch({
+        type: 'SAVE_USER',
+        pseudo: pseudo,
+        userId: userid,
+        token: token,
+      });
+    }
+  }, [dispatch, logged]);
 
   const { pathname } = useLocation();
   useEffect(() => {
@@ -67,48 +70,30 @@ const App = () => {
         <Route path="/connexion">
           <Connection />
         </Route>
-        {!logged
-          && (
-          <Route path="/connexion">
-            <Connection />
-          </Route>
-          )}
-        {logged && (
-          <Route path="/modifier-profil">
-            <ProfileUpdate />
-          </Route>
-        )}
+        <ProtectedRoute path="/modifier-profil">
+          <ProfileUpdate />
+        </ProtectedRoute>
         <Route path="/spots" exact>
           <Spots />
         </Route>
         <Route path="/evenements" exact>
           <Events />
         </Route>
-        {logged && (
-          <Route path="/profil">
-            <Profile />
-          </Route>
-        )}
-        {logged && (
-          <Route path="/spots/:id" exact>
-            <Spot />
-          </Route>
-        )}
-        {logged && (
-          <Route path="/ajout-spot">
-            <AddSpot />
-          </Route>
-        )}
-        {logged && (
-          <Route path="/evenements/:id" exact>
-            <Event />
-          </Route>
-        )}
-        {logged && (
-          <Route path="/ajout-evenement">
-            <AddEvent />
-          </Route>
-        )}
+        <ProtectedRoute path="/profil">
+          <Profile />
+        </ProtectedRoute>
+        <ProtectedRoute path="/spots/:id" exact>
+          <Spot />
+        </ProtectedRoute>
+        <ProtectedRoute path="/ajout-spot">
+          <AddSpot />
+        </ProtectedRoute>
+        <ProtectedRoute path="/evenements/:id" exact>
+          <Event />
+        </ProtectedRoute>
+        <ProtectedRoute path="/ajout-evenement">
+          <AddEvent />
+        </ProtectedRoute>
         <Route path="/nous-contacter">
           <ContactUs />
         </Route>

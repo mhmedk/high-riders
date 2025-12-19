@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 // import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import Field from '../../../Field';
 import Select from '../../../Select';
@@ -36,6 +37,15 @@ const EventForm = ({
 
   const handleSubmit = (evt) => {
     evt.preventDefault();
+
+    // Validate required fields
+    if (!title || title.trim() === '') {
+      toast.error('Le titre de l\'évènement est obligatoire', {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+      return;
+    }
+
     sendData();
   };
 
@@ -47,6 +57,7 @@ const EventForm = ({
           placeholder="Titre de l'évènement"
           onChange={changeField}
           value={title}
+          required
         />
         <Field
           name="newImage"

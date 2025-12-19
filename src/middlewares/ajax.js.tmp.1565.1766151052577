@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FETCH_HOME_LASTS } from '../actions/home';
-import { FETCH_SPOTS_LIST, FETCH_SPOT_ID, fetchSpotId } from '../actions/spots';
+import { FETCH_SPOTS_LIST, FETCH_SPOT_ID } from '../actions/spots';
 import { FETCH_PROFILE, UPDATE_PROFILE } from '../actions/profile';
 import { CONTACT_US } from '../actions/contact';
 
@@ -9,37 +9,14 @@ const api = axios.create({
   baseURL: process.env.API_BASE_URL,
 });
 
-// Function to set the authorization token
-const setAuthToken = (token) => {
-  if (token) {
-    api.defaults.headers.common.Authorization = `bearer ${token}`;
-  } else {
-    delete api.defaults.headers.common.Authorization;
-  }
-};
-
-// Set token on initial load if it exists
 const connectedToken = localStorage.getItem('token');
-console.log('Initial token from localStorage:', connectedToken);
-setAuthToken(connectedToken);
-console.log('Initial auth header set:', api.defaults.headers.common.Authorization);
+
+// Si on a bien un token
+if (connectedToken) {
+  api.defaults.headers.common.Authorization = `bearer ${connectedToken}`;
+}
 
 const ajax = (store) => (next) => (action) => {
-  // Set auth token when user state is restored from localStorage
-  if (action.type === 'SAVE_USER' && action.token) {
-    console.log('SAVE_USER intercepted, token:', action.token);
-    setAuthToken(action.token);
-    console.log('Auth header after SAVE_USER:', api.defaults.headers.common.Authorization);
-  }
-
-  // Clear auth token on logout
-  if (action.type === 'LOGOUT') {
-    setAuthToken(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('pseudo');
-    localStorage.removeItem('userid');
-  }
-
   if (action.type === 'FETCH_SEARCH_ALL') {
     api.get(`/search/?search=${action.searchedValue}`)
       .then((res) => {
@@ -165,7 +142,7 @@ const ajax = (store) => (next) => (action) => {
     })
       .then((res) => {
         // success
-        setAuthToken(res.data.access_token);
+        api.defaults.headers.common.Authorization = `bearer ${res.data.access_token}`;
         // on va chercher les données de l'utilisateur connecté
         store.dispatch({
           type: 'SAVE_USER',
@@ -177,11 +154,7 @@ const ajax = (store) => (next) => (action) => {
         localStorage.setItem('pseudo', res.data.user.pseudo);
         localStorage.setItem('userid', res.data.user.id);
         localStorage.setItem('isConnectedSuccess', 'true');
-
-        // Redirect to the page user was trying to access, or homepage
-        const redirectTo = localStorage.getItem('redirectAfterLogin') || '/';
-        localStorage.removeItem('redirectAfterLogin');
-        window.location.href = redirectTo;
+        window.location.href = '/';
         // console.log(res.data);
       })
       .catch(() => {
@@ -336,166 +309,54 @@ const ajax = (store) => (next) => (action) => {
       });
   }
   if (action.type === FETCH_PROFILE) {
-    console.log('FETCH_PROFILE action received with id:', action.id);
-    if (!action.id) {
-      // If no id, set loading to false
-      console.log('No id provided, dispatching PROFILE_ERROR');
-      store.dispatch({
-        type: 'PROFILE_ERROR',
-      });
-      return next(action);
-    }
-    console.log('Dispatching FETCH_PROFILE_START and making API call to /users/' + action.id);
-    store.dispatch({
-      type: 'FETCH_PROFILE_START',
-    });
     api.get(`/users/${action.id}`)
       .then((res) => {
         // success
-        console.log('Profile API call successful, data:', res.data);
         store.dispatch({
           type: 'GET_PROFILE',
           newProfile: res.data,
         });
+        console.log(res.data);
       })
       .catch((err) => {
         // error
-        console.error('Profile API call failed:', err);
-
-        // If 401 Unauthorized, token is expired or invalid
-        if (err.response && err.response.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('userid');
-          localStorage.removeItem('pseudo');
-          store.dispatch({
-            type: 'LOGOUT',
-          });
-          toast.error('Session expirée, veuillez vous reconnecter', {
-            position: toast.POSITION.BOTTOM_LEFT,
-          });
-          window.location.href = '/connexion';
-        } else {
-          store.dispatch({
-            type: 'PROFILE_ERROR',
-          });
-        }
+        console.log(err);
       });
   }
   if (action.type === 'SEND_SPOT_COMMENT') {
     const state = store.getState();
-    const comment = state.spots.newComment;
-    const userId = state.user.userId;
-
-    if (!comment || comment.trim() === '') {
-      toast.error('Le commentaire ne peut pas être vide', {
-        position: toast.POSITION.BOTTOM_LEFT,
-      });
-      return next(action);
-    }
-
-    if (!userId) {
-      toast.error('Vous devez être connecté pour commenter', {
-        position: toast.POSITION.BOTTOM_LEFT,
-      });
-      return next(action);
-    }
-
     api.post(`/spots/${action.id}/comment`, {
-      content: comment,
-      userId: Number(userId),
-      labelType: '',
+      content: state.spots.newComment,
+      label_type: '',
     })
       .then((res) => {
         // success
         store.dispatch({
           type: 'SUCCESS_COMMENT_SPOT',
         });
-        toast.success('Commentaire ajouté', {
-          position: toast.POSITION.BOTTOM_LEFT,
-        });
-        // Refresh spot data to show new comment
-        store.dispatch(fetchSpotId(action.id));
         console.log(res);
       })
       .catch((err) => {
         // error
-        console.error('Comment posting failed:', err);
-        if (err.response && err.response.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('userid');
-          localStorage.removeItem('pseudo');
-          store.dispatch({
-            type: 'LOGOUT',
-          });
-          toast.error('Session expirée, veuillez vous reconnecter', {
-            position: toast.POSITION.BOTTOM_LEFT,
-          });
-          window.location.href = '/connexion';
-        } else {
-          toast.error('Erreur lors de l\'ajout du commentaire', {
-            position: toast.POSITION.BOTTOM_LEFT,
-          });
-        }
+        console.log(err);
       });
   }
   if (action.type === 'SEND_EVENT_COMMENT') {
     const state = store.getState();
-    const comment = state.events.newComment;
-    const userId = state.user.userId;
-
-    if (!comment || comment.trim() === '') {
-      toast.error('Le commentaire ne peut pas être vide', {
-        position: toast.POSITION.BOTTOM_LEFT,
-      });
-      return next(action);
-    }
-
-    if (!userId) {
-      toast.error('Vous devez être connecté pour commenter', {
-        position: toast.POSITION.BOTTOM_LEFT,
-      });
-      return next(action);
-    }
-
     api.post(`/events/${action.id}/comment`, {
-      content: comment,
-      userId: Number(userId),
-      labelType: '',
+      content: state.events.newComment,
+      label_type: '',
     })
       .then((res) => {
         // success
         store.dispatch({
           type: 'SUCCESS_COMMENT_EVENT',
         });
-        toast.success('Commentaire ajouté', {
-          position: toast.POSITION.BOTTOM_LEFT,
-        });
-        // Refresh event data to show new comment
-        store.dispatch({
-          type: 'FETCH_EVENT_ID',
-          id: action.id,
-        });
         console.log(res);
       })
       .catch((err) => {
         // error
-        console.error('Comment posting failed:', err);
-        if (err.response && err.response.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('userid');
-          localStorage.removeItem('pseudo');
-          store.dispatch({
-            type: 'LOGOUT',
-          });
-          toast.error('Session expirée, veuillez vous reconnecter', {
-            position: toast.POSITION.BOTTOM_LEFT,
-          });
-          window.location.href = '/connexion';
-        } else {
-          toast.error('Erreur lors de l\'ajout du commentaire', {
-            position: toast.POSITION.BOTTOM_LEFT,
-          });
-        }
+        console.log(err);
       });
   }
   if (action.type === 'SEND_EVENT_PARTICIPATION') {

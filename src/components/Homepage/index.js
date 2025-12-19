@@ -17,9 +17,9 @@ const Homepage = () => {
   const lastsSpotsData = useSelector((state) => state.home.lastsSpots);
   const loading = useSelector((state) => state.home.loading);
 
-  const lastsEvents = lastsEventsData.slice(0, 3);
-  const bestsSpots = bestsSpotsData.slice(0, 3);
-  const lastsSpots = lastsSpotsData.slice(0, 3);
+  const lastsEvents = lastsEventsData?.slice(0, 3) || [];
+  const bestsSpots = bestsSpotsData?.slice(0, 3) || [];
+  const lastsSpots = lastsSpotsData?.slice(0, 3) || [];
 
   const isConnected = localStorage.getItem('isConnectedSuccess');
 
@@ -55,7 +55,7 @@ const Homepage = () => {
             </p>
             <p>Tu veux découvrir un nouveau spot ?</p>
             <p>Tu veux rencontrer de nouveaux riders ?</p>
-            <p>Retrouve les meilleurs spots de Vtt 🚴 de ta région sur O’Riders, un site
+            <p>Retrouve les meilleurs spots de Vtt 🚴 de ta région sur High Riders, un site
               communautaire fait PAR et POUR les Riders de France.
             </p>
             <p>Crée ton spot préféré, note et commente ton événement.</p>
