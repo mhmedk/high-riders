@@ -42,15 +42,21 @@ module.exports = merge(common, {
 
   devServer: {
     historyApiFallback: true,
-    contentBase: paths.build,
-    clientLogLevel: 'warn',
-    overlay: true,
-    stats: 'minimal',
+    static: {
+      directory: paths.build,
+      watch: {
+        ignored: /node_modules/,
+      },
+    },
+    client: {
+      logging: 'warn',
+      overlay: true,
+    },
     open: false,
     compress: true,
     hot: true,
-    watchOptions: {
-      ignored: /node_modules/,
+    devMiddleware: {
+      stats: 'minimal',
     },
     port,
   },

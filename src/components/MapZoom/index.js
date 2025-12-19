@@ -15,7 +15,11 @@ const MapZoom = ({
   data,
   draggable,
 }) => (
-  <MapContainer center={coordinates || [46.50, 2.00]} zoom={zoom}>
+  <MapContainer
+    key={`${coordinates[0]}-${coordinates[1]}`}
+    center={coordinates || [46.50, 2.00]}
+    zoom={zoom}
+  >
     <TileLayer
       attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
