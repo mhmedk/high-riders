@@ -28,7 +28,11 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin( {
-      "process.env": JSON.stringify(dotenv.parsed)
+      "process.env": JSON.stringify({
+        ...dotenv.parsed,
+        // Allow system environment variables to override .env files (for Vercel, Render, etc.)
+        API_BASE_URL: process.env.API_BASE_URL || dotenv.parsed?.API_BASE_URL,
+      })
     }),
     new CleanWebpackPlugin(),
     new CopyWebpackPlugin({
