@@ -2,6 +2,10 @@
 
 **Live Application**: https://high-riders.vercel.app
 
+## About This Project
+
+This is a final training project that was successfully restored and deployed with the assistance of Claude Code. After some time, the application needed updates and fixes to get it working again, and Claude Code helped modernize the build configuration, resolve deployment issues, and get it back online.
+
 ## Overview
 
 High Riders is a community platform designed to connect extreme sports enthusiasts across France. It serves as a central hub where riders—whether they practice mountain biking, BMX, skateboarding, scootering, or rollerblading—can discover places to practice, share their favorite spots, organize events, and build a vibrant community around their passion.
